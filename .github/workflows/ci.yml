@@ -1,4 +1,4 @@
-name: CI - Python Check
+name: CI - Python Checks
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up Python
@@ -23,7 +23,7 @@ jobs:
         pip install -r requirements.txt
         pip install pytest black
 
-    - name: Run black (code format check)
+    - name: Code format check (black)
       run: black --check .
 
     - name: Run tests
