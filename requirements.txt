@@ -2,3 +2,5 @@ streamlit
 pandas
 black
 pytest
+openai
+python-dotenv
