@@ -15,7 +15,6 @@ uploaded_file = st.file_uploader(
 )
 
 
-
 from core.model_explainer import explain_model
 
 # 在檔案預覽下方
@@ -30,5 +29,7 @@ if uploaded_file:
     st.subheader("🧠 使用 GPT 解釋模型")
     if st.button("📖 解釋這份模型內容"):
         with st.spinner("LLM 分析中，請稍候..."):
-            result = explain_model(preview.to_csv(index=False), file_type=uploaded_file.type)
+            result = explain_model(
+                preview.to_csv(index=False), file_type=uploaded_file.type
+            )
         st.text_area("🔍 GPT 解釋結果", value=result, height=300)
