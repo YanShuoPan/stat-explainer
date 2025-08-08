@@ -14,11 +14,21 @@ uploaded_file = st.file_uploader(
     "請上傳模型檔案（csv / json / pkl）", type=["csv", "json", "pkl"]
 )
 
+
+
+from core.model_explainer import explain_model
+
+# 在檔案預覽下方
 if uploaded_file:
     file_path = save_uploaded_file(uploaded_file)
     st.success(f"✅ 已儲存至: {file_path}")
-
-    # 嘗試預覽內容
     preview = read_uploaded_file(file_path)
     st.subheader("📋 檔案預覽")
     st.dataframe(preview)
+
+    # 加入 LLM 解釋功能
+    st.subheader("🧠 使用 GPT 解釋模型")
+    if st.button("📖 解釋這份模型內容"):
+        with st.spinner("LLM 分析中，請稍候..."):
+            result = explain_model(preview.to_csv(index=False), file_type=uploaded_file.type)
+        st.text_area("🔍 GPT 解釋結果", value=result, height=300)
