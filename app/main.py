@@ -33,3 +33,21 @@ if uploaded_file:
                 preview.to_csv(index=False), file_type=uploaded_file.type
             )
         st.text_area("🔍 GPT 解釋結果", value=result, height=300)
+
+import os
+from core.rag_chain import run_rag_pipeline
+st.subheader("📎 上傳背景說明檔案（.txt）")
+rag_file = st.file_uploader("選擇背景說明檔（純文字）", type=["txt"], key="rag")
+
+rag_text = None
+if rag_file:
+    rag_bytes = rag_file.read()
+    rag_text = rag_bytes.decode("utf-8")
+    st.text_area("📝 檢視背景內容", value=rag_text, height=200)
+
+    if uploaded_file:
+        question = "請根據這份背景說明來解釋上傳的模型結果。"
+        if st.button("📖 使用 RAG 解釋模型"):
+            with st.spinner("正在檢索與分析..."):
+                response = run_rag_pipeline(question=question, raw_text=rag_text)
+            st.text_area("🔍 GPT（RAG）回應", value=response, height=300)

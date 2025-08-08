@@ -1,7 +1,9 @@
 [server]
 headless = true
 port = 8501
-enableCORS = false
+enableCORS = true          # 或乾脆移除這行
+enableXsrfProtection = true
+
 
 [theme]
 base="light"

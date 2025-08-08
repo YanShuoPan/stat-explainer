@@ -4,3 +4,5 @@ black
 pytest
 openai
 python-dotenv
+chromadb
+langchain
