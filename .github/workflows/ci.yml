@@ -1,4 +1,4 @@
-name: CI - Python Checks
+name: CI - Python Checks and sort
 
 on:
   pull_request:
