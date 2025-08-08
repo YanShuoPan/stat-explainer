@@ -7,6 +7,7 @@ import json
 
 UPLOAD_DIR = "data"
 
+
 def save_uploaded_file(uploaded_file):
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
