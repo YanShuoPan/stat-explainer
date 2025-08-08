@@ -36,7 +36,6 @@ if uploaded_file:
 
 import os
 from core.rag_chain import run_rag_pipeline
-
 st.subheader("📎 上傳背景說明檔案（.txt）")
 rag_file = st.file_uploader("選擇背景說明檔（純文字）", type=["txt"], key="rag")
 
