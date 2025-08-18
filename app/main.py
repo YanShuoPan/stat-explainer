@@ -57,9 +57,12 @@ st.header("1) 上傳與預覽 Upload & Preview")
 
 uploaded = st.file_uploader("上傳檔案", type=["csv", "json", "pkl", "txt"])
 if uploaded:
+    # 存檔（得到路徑）
     file_path = save_uploaded_file(uploaded)
-    preview = read_uploaded_file(file_path)  # 現在也可（因為支援 str）
-    st.subheader("📋 檔案預覽")
+
+    # 預覽（推薦直接用 UploadedFile，而不是 file_path）
+    preview = read_uploaded_file(uploaded)
+    st.write(preview)
     if isinstance(preview, pd.DataFrame):
         st.dataframe(preview, use_container_width=True)
         st.caption(f"Rows: {preview.shape[0]} | Cols: {preview.shape[1]}")
