@@ -15,8 +15,7 @@ import streamlit as st
 import pandas as pd
 from core.llm_tools import *
 
-# 確保可以 import core/*
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# 確保可以 import core/
 
 # 檔案處理
 from core.file_handler import save_uploaded_file, read_uploaded_file  # type: ignore
@@ -31,9 +30,11 @@ except Exception:  # noqa: BLE001
 from core.llm_executor import make_client  # type: ignore
 from core.tool_registry import dispatch_tool  # type: ignore
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # -------------------------------------------------------------
 # 基本設定
 # -------------------------------------------------------------
+
 st.set_page_config(page_title="Stat Explainer", layout="wide")
 st.title("📊 stat-explainer — 上傳/預覽 + RAG + OGA-HDiC (Level 3)")
 
