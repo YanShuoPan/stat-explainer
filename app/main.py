@@ -55,14 +55,19 @@ if not API_KEY:
 # =============================================================
 st.header("1) 上傳與預覽 Upload & Preview")
 
-uploaded = st.file_uploader("上傳檔案", type=["csv", "json", "pkl", "txt"])
-if uploaded:
-    # 存檔（得到路徑）
-    file_path = save_uploaded_file(uploaded)
+uploaded_file = st.file_uploader(
+    "請上傳資料/模型輸出檔（csv / json / pkl）",
+    type=["csv", "json", "pkl"],
+    key="data_file",
+)
+preview: pd.DataFrame | None = None
+file_path: str | None = None
 
-    # 預覽（推薦直接用 UploadedFile，而不是 file_path）
-    preview = read_uploaded_file(uploaded)
-    st.write(preview)
+if uploaded_file:
+    file_path = save_uploaded_file(uploaded_file)
+    st.success(f"✅ 已儲存至: {file_path}")
+    preview = read_uploaded_file(file_path)
+    st.subheader("📋 檔案預覽")
     if isinstance(preview, pd.DataFrame):
         st.dataframe(preview, use_container_width=True)
         st.caption(f"Rows: {preview.shape[0]} | Cols: {preview.shape[1]}")
