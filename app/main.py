@@ -2,10 +2,8 @@
 import os
 import json
 import streamlit as st
-
-# 若你需要：把專案根目錄加到 sys.path（你之前已加過可略）
-# import sys, os
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from core.tool_registry import register_tool
 from core.llm_executor import make_client, chat_with_tools
