@@ -33,10 +33,19 @@ except Exception:  # noqa: BLE001
 from core.llm_executor import make_client  # type: ignore
 from core.tool_registry import dispatch_tool  # type: ignore
 
-
 # -------------------------------------------------------------
 # 基本設定
 # -------------------------------------------------------------
+
+st.set_page_config(page_title="Stat Explainer", layout="wide")
+st.title("📊 stat-explainer — 上傳/預覽 + RAG + OGA-HDiC (Level 3)")
+
+
+# 取得 API Key
+def get_api_key() -> str | None:
+    return st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+
+
 def to_jsonable(obj, max_list=100, max_str=4000):
     """把 numpy/pandas/statsmodels 結構轉成可 JSON 序列化的純 Python。
     會對長序列/字串做截斷，避免 payload 過大。"""
@@ -100,15 +109,6 @@ def to_jsonable(obj, max_list=100, max_str=4000):
     return str(obj)[:max_str] + (" ...<truncated>" if len(str(obj)) > max_str else "")
 
 
-st.set_page_config(page_title="Stat Explainer", layout="wide")
-st.title("📊 stat-explainer — 上傳/預覽 + RAG + OGA-HDiC (Level 3)")
-
-
-# 取得 API Key
-def get_api_key() -> str | None:
-    return st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
-
-
 API_KEY = get_api_key()
 if not API_KEY:
     st.warning("未找到 OPENAI_API_KEY（Secrets 或環境變數），RAG 功能將無法呼叫 GPT。")
@@ -118,24 +118,13 @@ if not API_KEY:
 # =============================================================
 st.header("1) 上傳與預覽 Upload & Preview")
 
-uploaded_file = st.file_uploader(
-    "請上傳資料/模型輸出檔（csv / json / pkl）",
-    type=["csv", "json", "pkl"],
-    key="data_file",
-)
-preview: pd.DataFrame | None = None
-file_path: str | None = None
-
+uploaded_file = st.file_uploader("上傳檔案", type=["csv", "json", "pkl", "txt"])
 if uploaded_file:
     file_path = save_uploaded_file(uploaded_file)
     st.success(f"✅ 已儲存至: {file_path}")
-    preview = read_uploaded_file(file_path)
+    preview = read_uploaded_file(uploaded_file)
     st.subheader("📋 檔案預覽")
-    if isinstance(preview, pd.DataFrame):
-        st.dataframe(preview, use_container_width=True)
-        st.caption(f"Rows: {preview.shape[0]} | Cols: {preview.shape[1]}")
-    else:
-        st.write(preview)
+    st.dataframe(preview)
 
 # # =============================================================
 # # 2) RAG 增強（.txt 背景）
@@ -230,9 +219,11 @@ else:
                     st.json(result)
             except Exception as e:
                 st.error(f"OGA-HDiC 本地執行錯誤：{e}")
+
         summary_model = st.selectbox(
             "選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0, key="oga_summary_model"
         )
+
         if run_local_summary:
             try:
                 result = dispatch_tool("run_oga_hdic", tool_args)
