@@ -8,20 +8,19 @@
 #   - 若需要 LLM，只會傳送精簡後結果摘要
 # -------------------------------------------------------------
 
+import json
 import os
 import sys
-import json
-import streamlit as st
-import pandas as pd
-import core.llm_tools
 
-# 確保可以 import core/*
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if ROOT_DIR not in sys.path:
-    sys.path.append(ROOT_DIR)
+import pandas as pd
+import streamlit as st
 
 # 檔案處理
-from core.file_handler import save_uploaded_file, read_uploaded_file  # type: ignore
+from core.file_handler import read_uploaded_file, save_uploaded_file  # type: ignore
+from core.llm_tools import dispatch_tool
+
+# 確保可以 import core/
+
 
 # RAG 管線
 try:
@@ -33,9 +32,11 @@ except Exception:  # noqa: BLE001
 from core.llm_executor import make_client  # type: ignore
 from core.tool_registry import dispatch_tool  # type: ignore
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # -------------------------------------------------------------
 # 基本設定
 # -------------------------------------------------------------
+
 st.set_page_config(page_title="Stat Explainer", layout="wide")
 st.title("📊 stat-explainer — 上傳/預覽 + RAG + OGA-HDiC (Level 3)")
 

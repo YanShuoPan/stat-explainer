@@ -1,0 +1,10 @@
+# 統一 LF
+*.py    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+
+# Windows 批次檔允許 CRLF
+*.bat   text eol=crlf
+*.cmd   text eol=crlf

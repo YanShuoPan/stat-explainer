@@ -1,8 +1,9 @@
+import os
+
 from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-import os
 
 CHROMA_PATH = "data/chroma_db"
 

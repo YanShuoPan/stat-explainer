@@ -1,11 +1,12 @@
 # core/llm_executor.py
-import os
 import json
-from typing import List, Dict, Any
-from openai import OpenAI
-from dotenv import load_dotenv
+import os
+from typing import Any, Dict, List
 
-from core.tool_registry import list_tools_for_openai, dispatch_tool
+from dotenv import load_dotenv
+from openai import OpenAI
+
+from core.tool_registry import dispatch_tool, list_tools_for_openai
 
 # 讀取本地 .env；在 Streamlit Cloud 會從 st.secrets 讀（見 app/main.py）
 load_dotenv()
