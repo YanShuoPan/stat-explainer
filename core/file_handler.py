@@ -26,22 +26,29 @@ def save_uploaded_file(uploaded_file):
     return file_path
 
 
-def read_uploaded_file(uploaded_file):
+def read_uploaded_file(file_input):
     """
-    讀取上傳的檔案（目前支援 CSV & TXT）
-    回傳 DataFrame 或文字
+    讀取檔案，可接受：
+    - Streamlit UploadedFile
+    - 檔案路徑 (str)
     """
-    if uploaded_file is None:
+    if file_input is None:
         return None
 
-    file_name = uploaded_file.name.lower()
+    # 如果是 UploadedFile
+    if hasattr(file_input, "name"):
+        file_name = file_input.name.lower()
+        buffer = file_input
+    else:
+        # 假設是字串路徑
+        file_name = str(file_input).lower()
+        buffer = open(file_input, "rb")
 
     if file_name.endswith(".csv"):
-        return pd.read_csv(uploaded_file)
+        return pd.read_csv(buffer)
 
     elif file_name.endswith(".txt"):
-        # 讀成純文字
-        return uploaded_file.getvalue().decode("utf-8")
+        return buffer.read().decode("utf-8")
 
     else:
         raise ValueError("目前僅支援 CSV 和 TXT 檔案。")
