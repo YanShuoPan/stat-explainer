@@ -61,9 +61,7 @@ def oga_hdic(X, y, Kn=None, c1=5, HDIC_Type="HDBIC", c2=2, c3=2.01, intercept=Tr
 
     n, p = X_df.shape
     if y_vec.shape[0] != n:
-        raise ValueError(
-            "the number of observations in y is not equal to the number of rows of X"
-        )
+        raise ValueError("the number of observations in y is not equal to the number of rows of X")
     if n == 1:
         raise ValueError("the sample size should be greater than 1")
 
@@ -177,9 +175,7 @@ def oga_hdic(X, y, Kn=None, c1=5, HDIC_Type="HDBIC", c2=2, c3=2.01, intercept=Tr
             model = sm.OLS(dy, X_trim, hasconst=False)
             res = model.fit()
             uDrop1 = res.resid
-            HDICDrop1 = n * np.log(np.mean(uDrop1**2)) + (
-                kn_hat - 1
-            ) * omega_n * np.log(p)
+            HDICDrop1 = n * np.log(np.mean(uDrop1**2)) + (kn_hat - 1) * omega_n * np.log(p)
             if HDICDrop1 > benchmark:
                 trim_pos[l] = 1
         trim_pos[kn_hat - 1] = 1  # always keep the last (as in R code)
