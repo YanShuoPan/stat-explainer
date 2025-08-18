@@ -1,0 +1,2 @@
+# 強制所有 Python 檔使用 LF 換行
+*.py text eol=lf
