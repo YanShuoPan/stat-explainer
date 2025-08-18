@@ -35,20 +35,11 @@ def read_uploaded_file(file_input):
     if file_input is None:
         return None
 
-    # 如果是 UploadedFile
-    if hasattr(file_input, "name"):
-        file_name = file_input.name.lower()
-        buffer = file_input
-    else:
-        # 假設是字串路徑
-        file_name = str(file_input).lower()
-        buffer = open(file_input, "rb")
+    if file_input.endswith(".csv"):
+        return pd.read_csv(file_input)
 
-    if file_name.endswith(".csv"):
-        return pd.read_csv(buffer)
-
-    elif file_name.endswith(".txt"):
-        return buffer.read().decode("utf-8")
+    elif file_input.endswith(".txt"):
+        return file_input.read().decode("utf-8")
 
     else:
         raise ValueError("目前僅支援 CSV 和 TXT 檔案。")
