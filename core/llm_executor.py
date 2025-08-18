@@ -10,11 +10,13 @@ from core.tool_registry import list_tools_for_openai, dispatch_tool
 # 讀取本地 .env；在 Streamlit Cloud 會從 st.secrets 讀（見 app/main.py）
 load_dotenv()
 
+
 def make_client(api_key: str | None = None) -> OpenAI:
     key = api_key or os.getenv("OPENAI_API_KEY")
     if not key:
         raise RuntimeError("OPENAI_API_KEY not found (env or provided).")
     return OpenAI(api_key=key)
+
 
 def chat_with_tools(
     client: OpenAI,
@@ -47,21 +49,24 @@ def chat_with_tools(
     for tc in msg.tool_calls:
         name = tc.function.name
         args = json.loads(tc.function.arguments or "{}")
-        result = dispatch_tool(name, args)         # 真正執行你的 Python 函式
+        result = dispatch_tool(name, args)  # 真正執行你的 Python 函式
         results.append({"name": name, "args": args, "result": result})
-        tool_messages.append({
-            "role": "tool",
-            "tool_call_id": tc.id,
-            "name": name,
-            "content": json.dumps(result, ensure_ascii=False),
-        })
+        tool_messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "name": name,
+                "content": json.dumps(result, ensure_ascii=False),
+            }
+        )
 
     # 第二次：把工具結果回餵給 LLM，請它整理最終自然語言輸出
     final = client.chat.completions.create(
         model=model,
-        messages=messages + [msg] + tool_messages + [
-            {"role": "user", "content": "請根據工具結果，給我清楚的結論與重點。"}
-        ],
+        messages=messages
+        + [msg]
+        + tool_messages
+        + [{"role": "user", "content": "請根據工具結果，給我清楚的結論與重點。"}],
         temperature=temperature,
     )
     return {"content": final.choices[0].message.content, "tool_results": results}

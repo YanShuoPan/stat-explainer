@@ -7,6 +7,7 @@ from core.tool_registry import register_tool
 # 依你的實際位置調整：
 from core.ohit import oga_hdic  # 若檔案仍在根目錄，就寫: from Ohit import oga_hdic
 
+
 def _to_jsonable(obj: Any):
     """把 numpy/pandas 轉成可 JSON 的型態，避免序列化失敗。"""
     if isinstance(obj, (np.integer, np.floating)):
@@ -18,6 +19,7 @@ def _to_jsonable(obj: Any):
     if isinstance(obj, pd.Series):
         return obj.tolist()
     return obj
+
 
 @register_tool(
     name="run_oga_hdic",
@@ -36,15 +38,18 @@ def _to_jsonable(obj: Any):
                 "items": {"type": "string"},
                 "description": "特徵欄位清單；若缺省則使用 y 以外的全部欄位。",
             },
-            "Kn": {"type": ["integer", "null"], "description": "選擇的變數數上限，null 代表不指定"},
+            "Kn": {
+                "type": ["integer", "null"],
+                "description": "選擇的變數數上限，null 代表不指定",
+            },
             "c1": {"type": "number", "default": 5},
             "HDIC_Type": {"type": "string", "default": "HDBIC"},
             "c2": {"type": "number", "default": 2},
             "c3": {"type": "number", "default": 2.01},
-            "intercept": {"type": "boolean", "default": True}
+            "intercept": {"type": "boolean", "default": True},
         },
-        "required": ["data", "y_col"]
-    }
+        "required": ["data", "y_col"],
+    },
 )
 def run_oga_hdic_tool(args: Dict[str, Any]) -> Dict[str, Any]:
     # 讀入參數
@@ -74,9 +79,16 @@ def run_oga_hdic_tool(args: Dict[str, Any]) -> Dict[str, Any]:
     y_clean = y.loc[valid]
 
     # 呼叫你自定義的模型
-    result = oga_hdic(X_clean.values, y_clean.values,
-                      Kn=Kn, c1=c1, HDIC_Type=HDIC_Type,
-                      c2=c2, c3=c3, intercept=intercept)
+    result = oga_hdic(
+        X_clean.values,
+        y_clean.values,
+        Kn=Kn,
+        c1=c1,
+        HDIC_Type=HDIC_Type,
+        c2=c2,
+        c3=c3,
+        intercept=intercept,
+    )
 
     # 嘗試把回傳轉成可序列化
     try:
@@ -91,6 +103,13 @@ def run_oga_hdic_tool(args: Dict[str, Any]) -> Dict[str, Any]:
         "used_rows": int(valid.sum()),
         "x_cols": x_cols,
         "y_col": y_col,
-        "params": {"Kn": Kn, "c1": c1, "HDIC_Type": HDIC_Type, "c2": c2, "c3": c3, "intercept": intercept},
+        "params": {
+            "Kn": Kn,
+            "c1": c1,
+            "HDIC_Type": HDIC_Type,
+            "c2": c2,
+            "c3": c3,
+            "intercept": intercept,
+        },
         "result": result_json,
     }

@@ -1,4 +1,3 @@
-
 import os
 import sys
 import json
@@ -10,7 +9,6 @@ ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 
 
 # --- Core imports (these should exist in your repo) ---
@@ -43,9 +41,11 @@ except Exception:
 st.set_page_config(page_title="Stat Explainer", layout="wide")
 st.title("📊 stat-explainer — LLM 平台 (RAG + Tools)")
 
+
 # ---- Helper: obtain API key (Streamlit Cloud secrets first, else env) ----
 def get_api_key() -> str | None:
     return st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+
 
 API_KEY = get_api_key()
 if not API_KEY:
@@ -58,7 +58,9 @@ if not API_KEY:
 # =============================================================
 st.header("1) 上傳與預覽 Upload & Preview")
 
-uploaded_file = st.file_uploader("請上傳資料/模型輸出檔（csv / json / pkl）", type=["csv", "json", "pkl"], key="data")
+uploaded_file = st.file_uploader(
+    "請上傳資料/模型輸出檔（csv / json / pkl）", type=["csv", "json", "pkl"], key="data"
+)
 preview: pd.DataFrame | None = None
 file_path: str | None = None
 
@@ -77,7 +79,11 @@ if uploaded_file:
 # Section 2 — GPT Explanation (non-RAG)
 # =============================================================
 st.header("2) GPT 解釋（不含 RAG）")
-model_choice = st.selectbox("選擇模型（僅用於展示；explain_model 內部可忽略）", ["gpt-4o", "gpt-4o-mini"], index=0)
+model_choice = st.selectbox(
+    "選擇模型（僅用於展示；explain_model 內部可忽略）",
+    ["gpt-4o", "gpt-4o-mini"],
+    index=0,
+)
 if st.button("📖 產生解釋", disabled=preview is None):
     if preview is None:
         st.info("請先上傳檔案。")
@@ -87,12 +93,22 @@ if st.button("📖 產生解釋", disabled=preview is None):
         try:
             if explain_model is None:
                 # Lightweight fallback: summarize first rows as text
-                text_block = preview.head(50).to_csv(index=False) if isinstance(preview, pd.DataFrame) else str(preview)
-                st.warning("未發現 core.model_explainer.explain_model，使用簡易顯示為後備方案。")
+                text_block = (
+                    preview.head(50).to_csv(index=False)
+                    if isinstance(preview, pd.DataFrame)
+                    else str(preview)
+                )
+                st.warning(
+                    "未發現 core.model_explainer.explain_model，使用簡易顯示為後備方案。"
+                )
                 st.text_area("暫時輸出", value=text_block, height=300)
             else:
                 # explain_model expects textual content
-                csv_text = preview.to_csv(index=False) if isinstance(preview, pd.DataFrame) else str(preview)
+                csv_text = (
+                    preview.to_csv(index=False)
+                    if isinstance(preview, pd.DataFrame)
+                    else str(preview)
+                )
                 out = explain_model(csv_text, file_type="csv")  # type: ignore[arg-type]
                 st.text_area("🔍 GPT 解釋結果", value=out, height=320)
         except Exception as e:  # noqa: BLE001
@@ -115,7 +131,9 @@ if rag_text:
 
 col_rag1, col_rag2 = st.columns([1, 2])
 with col_rag1:
-    rag_kick = st.button("📖 使用 RAG 解釋模型", disabled=(rag_text is None or preview is None))
+    rag_kick = st.button(
+        "📖 使用 RAG 解釋模型", disabled=(rag_text is None or preview is None)
+    )
 with col_rag2:
     st.caption("說明：會建立/載入向量庫（Chroma），用檢索片段輔助 GPT 生成解釋。")
 
@@ -149,7 +167,9 @@ with st.expander("開啟 / 收合：最小工具呼叫測試"):
         "你的問題",
         "請用可用的工具計算當 x=3, y=5 時的模型輸出，並簡要說明。",
     )
-    model_name = st.selectbox("選擇模型", ["gpt-4o-mini", "gpt-4o"], index=0, key="tool_model")
+    model_name = st.selectbox(
+        "選擇模型", ["gpt-4o-mini", "gpt-4o"], index=0, key="tool_model"
+    )
 
     if st.button("🚀 執行工具測試"):
         if not API_KEY:
@@ -161,13 +181,18 @@ with st.expander("開啟 / 收合：最小工具呼叫測試"):
                     {"role": "system", "content": "你是擅長統計建模與數值運算的助理。"},
                     {"role": "user", "content": question},
                     {"role": "user", "content": f"給定 x={x_val}, y={y_val}"},
-                    {"role": "user", "content": "若需要計算，請呼叫 my_model 並傳入參數。"},
+                    {
+                        "role": "user",
+                        "content": "若需要計算，請呼叫 my_model 並傳入參數。",
+                    },
                 ]
-                out = chat_with_tools(client, messages, model=model_name, temperature=0.2)
+                out = chat_with_tools(
+                    client, messages, model=model_name, temperature=0.2
+                )
                 st.success("LLM 最終回覆：")
                 st.write(out["content"])
                 with st.expander("🔧 工具呼叫明細（debug）"):
-                    st.json(out["tool_results"])    
+                    st.json(out["tool_results"])
             except Exception as e:  # noqa: BLE001
                 st.error(f"執行錯誤：{e}")
 
@@ -194,13 +219,22 @@ else:
         with st.expander("參數設定", expanded=False):
             Kn = st.number_input("Kn（0=不指定）", value=0, min_value=0, step=1)
             c1 = st.number_input("c1", value=5.0, step=0.5)
-            HDIC_Type = st.selectbox("HDIC_Type", options=["HDBIC", "HDHQ", "HDAIC"], index=0)
+            HDIC_Type = st.selectbox(
+                "HDIC_Type", options=["HDBIC", "HDHQ", "HDAIC"], index=0
+            )
             c2 = st.number_input("c2", value=2.0, step=0.5)
             c3 = st.number_input("c3", value=2.01, step=0.01)
             intercept = st.checkbox("intercept", value=True)
-        max_rows = st.number_input("送往 LLM 的資料筆數上限", value=1000, min_value=50, step=50)
+        max_rows = st.number_input(
+            "送往 LLM 的資料筆數上限", value=1000, min_value=50, step=50
+        )
         data_records = df.iloc[: int(max_rows)].to_dict(orient="records")
-        model_name2 = st.selectbox("選擇模型 (tool calling)", ["gpt-4o-mini", "gpt-4o"], index=0, key="oga_model")
+        model_name2 = st.selectbox(
+            "選擇模型 (tool calling)",
+            ["gpt-4o-mini", "gpt-4o"],
+            index=0,
+            key="oga_model",
+        )
 
         if st.button("🚀 讓 LLM 執行 OGA-HDiC"):
             if not API_KEY:
@@ -216,17 +250,33 @@ else:
                     )
 
                     messages = [
-                        {"role": "system", "content": "你是熟悉高維模型選擇的統計助理。"},
+                        {
+                            "role": "system",
+                            "content": "你是熟悉高維模型選擇的統計助理。",
+                        },
                         {"role": "user", "content": user_goal},
-                        {"role": "user", "content": (
-                            f"y_col={y_col}；x_cols={x_cols}；Kn={Kn_arg}；c1={c1}；"
-                            f"HDIC_Type={HDIC_Type}；c2={c2}；c3={c3}；intercept={intercept}。"
-                        )},
-                        {"role": "user", "content": f"資料共有 {len(df)} 列，這裡提供前 {len(data_records)} 列用於計算。"},
-                        {"role": "user", "content": json.dumps({"data": data_records}, ensure_ascii=False)},
+                        {
+                            "role": "user",
+                            "content": (
+                                f"y_col={y_col}；x_cols={x_cols}；Kn={Kn_arg}；c1={c1}；"
+                                f"HDIC_Type={HDIC_Type}；c2={c2}；c3={c3}；intercept={intercept}。"
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": f"資料共有 {len(df)} 列，這裡提供前 {len(data_records)} 列用於計算。",
+                        },
+                        {
+                            "role": "user",
+                            "content": json.dumps(
+                                {"data": data_records}, ensure_ascii=False
+                            ),
+                        },
                     ]
 
-                    out = chat_with_tools(client, messages, model=model_name2, temperature=0.1)
+                    out = chat_with_tools(
+                        client, messages, model=model_name2, temperature=0.1
+                    )
                     st.success("LLM（含工具執行）回覆：")
                     st.write(out["content"])
                     with st.expander("🔧 工具呼叫明細（結果原始 JSON）"):
