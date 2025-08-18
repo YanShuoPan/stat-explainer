@@ -18,7 +18,7 @@ import streamlit as st
 
 # 檔案處理
 from ..core.file_handler import read_uploaded_file, save_uploaded_file  # type: ignore
-from ..core.llm_tools import dispatch_tool
+from ..core.llm_tools import *
 
 # 確保可以 import core/
 
