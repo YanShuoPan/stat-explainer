@@ -12,6 +12,8 @@ import json
 import os
 import sys
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import pandas as pd
 import streamlit as st
 
@@ -32,7 +34,6 @@ except Exception:  # noqa: BLE001
 from core.llm_executor import make_client  # type: ignore
 from core.tool_registry import dispatch_tool  # type: ignore
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # -------------------------------------------------------------
 # 基本設定
 # -------------------------------------------------------------
