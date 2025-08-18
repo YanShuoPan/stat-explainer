@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+
 def run_rag_pipeline(question: str, raw_text: str):
     # 建立向量庫
     create_vectorstore_from_text(raw_text)
