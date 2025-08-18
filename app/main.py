@@ -13,7 +13,7 @@ import sys
 import json
 import streamlit as st
 import pandas as pd
-from core.llm_tools import *
+from core.llm_tools import dispatch_tool
 
 # 確保可以 import core/
 
