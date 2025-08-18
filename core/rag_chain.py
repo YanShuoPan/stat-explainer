@@ -1,9 +1,11 @@
 # core/rag_chain.py
 
-from core.vector_store import create_vectorstore_from_text, query_vectorstore
-from openai import OpenAI
 import os
+
 from dotenv import load_dotenv
+from openai import OpenAI
+
+from core.vector_store import create_vectorstore_from_text, query_vectorstore
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

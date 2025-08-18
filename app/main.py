@@ -8,17 +8,19 @@
 #   - 若需要 LLM，只會傳送精簡後結果摘要
 # -------------------------------------------------------------
 
+import json
 import os
 import sys
-import json
-import streamlit as st
+
 import pandas as pd
+import streamlit as st
+
+# 檔案處理
+from core.file_handler import read_uploaded_file, save_uploaded_file  # type: ignore
 from core.llm_tools import dispatch_tool
 
 # 確保可以 import core/
 
-# 檔案處理
-from core.file_handler import save_uploaded_file, read_uploaded_file  # type: ignore
 
 # RAG 管線
 try:
@@ -180,7 +182,9 @@ else:
                             compact[k] = "<omitted>"
                     payload = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
 
-                    model_name = st.selectbox("選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0)
+                    model_name = st.selectbox(
+                        "選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0
+                    )
                     summary = (
                         client.chat.completions.create(
                             model=model_name,
