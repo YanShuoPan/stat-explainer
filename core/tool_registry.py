@@ -5,7 +5,9 @@ import json
 
 # 單一工具的結構
 class ToolSpec:
-    def __init__(self, name: str, description: str, schema: dict, func: Callable[[dict], Any]):
+    def __init__(
+        self, name: str, description: str, schema: dict, func: Callable[[dict], Any]
+    ):
         self.name = name
         self.description = description
         self.schema = schema  # JSON Schema
