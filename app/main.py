@@ -13,6 +13,7 @@ import sys
 import json
 import streamlit as st
 import pandas as pd
+import core.llm_tools
 
 # 確保可以 import core/*
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
