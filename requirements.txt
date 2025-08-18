@@ -10,3 +10,4 @@ langchain-community
 langchain-openai
 langchain-core
 langchain-text-splitters
+black==24.8.0

@@ -8,17 +8,13 @@ CHROMA_PATH = "data/chroma_db"
 
 
 def get_text_chunks(text: str, chunk_size=500, chunk_overlap=50):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     return splitter.split_text(text)
 
 
 def create_vectorstore_from_text(text: str, doc_id="notes"):
     chunks = get_text_chunks(text)
-    docs = [
-        Document(page_content=chunk, metadata={"source": doc_id}) for chunk in chunks
-    ]
+    docs = [Document(page_content=chunk, metadata={"source": doc_id}) for chunk in chunks]
     embeddings = OpenAIEmbeddings()
     vectordb = Chroma.from_documents(
         documents=docs, embedding=embeddings, persist_directory=CHROMA_PATH
