@@ -124,9 +124,7 @@ else:
         with st.expander("參數設定", expanded=False):
             Kn = st.number_input("Kn（0=不指定）", value=0, min_value=0, step=1)
             c1 = st.number_input("c1", value=5.0, step=0.5)
-            HDIC_Type = st.selectbox(
-                "HDIC_Type", options=["HDBIC", "HDHQ", "HDAIC"], index=0
-            )
+            HDIC_Type = st.selectbox("HDIC_Type", options=["HDBIC", "HDHQ", "HDAIC"], index=0)
             c2 = st.number_input("c2", value=2.0, step=0.5)
             c3 = st.number_input("c3", value=2.01, step=0.01)
             intercept = st.checkbox("intercept", value=True)
@@ -179,13 +177,9 @@ else:
                     for k in ["X", "y", "coef_matrix", "residuals", "fitted_values"]:
                         if k in compact:
                             compact[k] = "<omitted>"
-                    payload = json.dumps(
-                        compact, ensure_ascii=False, separators=(",", ":")
-                    )
+                    payload = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
 
-                    model_name = st.selectbox(
-                        "選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0
-                    )
+                    model_name = st.selectbox("選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0)
                     summary = (
                         client.chat.completions.create(
                             model=model_name,
