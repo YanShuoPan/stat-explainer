@@ -9,6 +9,9 @@ import pandas as pd
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
 
 # --- Core imports (these should exist in your repo) ---
 from core.file_handler import save_uploaded_file, read_uploaded_file  # type: ignore
