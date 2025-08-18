@@ -33,9 +33,72 @@ except Exception:  # noqa: BLE001
 from core.llm_executor import make_client  # type: ignore
 from core.tool_registry import dispatch_tool  # type: ignore
 
+
 # -------------------------------------------------------------
 # 基本設定
 # -------------------------------------------------------------
+def to_jsonable(obj, max_list=100, max_str=4000):
+    """把 numpy/pandas/statsmodels 結構轉成可 JSON 序列化的純 Python。
+    會對長序列/字串做截斷，避免 payload 過大。"""
+    # 基本型別
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        if isinstance(obj, str) and len(obj) > max_str:
+            return obj[:max_str] + " ...<truncated>"
+        return obj
+
+    # numpy 標量
+    if isinstance(obj, (np.integer, np.floating)):
+        return obj.item()
+
+    # pandas
+    if isinstance(obj, pd.Series):
+        lst = obj.tolist()
+        if len(lst) > max_list:
+            return lst[:max_list] + ["<truncated>"]
+        return lst
+    if isinstance(obj, pd.Index):
+        lst = obj.tolist()
+        if len(lst) > max_list:
+            return lst[:max_list] + ["<truncated>"]
+        return lst
+    if isinstance(obj, pd.DataFrame):
+        # 只輸出前 max_list 列
+        df_small = obj.head(max_list)
+        return {
+            "columns": df_small.columns.tolist(),
+            "rows": df_small.to_dict(orient="records"),
+            "note": f"truncated to {len(df_small)} rows" if len(obj) > max_list else "full",
+        }
+
+    # numpy 陣列/序列
+    if isinstance(obj, (list, tuple, set)):
+        lst = list(obj)
+        if len(lst) > max_list:
+            lst = lst[:max_list] + ["<truncated>"]
+        return [to_jsonable(v, max_list=max_list, max_str=max_str) for v in lst]
+    if isinstance(obj, np.ndarray):
+        lst = obj.tolist()
+        if len(lst) > max_list:
+            lst = lst[:max_list] + ["<truncated>"]
+        return lst
+
+    # dict
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            out[str(k)] = to_jsonable(v, max_list=max_list, max_str=max_str)
+        return out
+
+    # statsmodels 等其他複雜物件 → 嘗試抓常用屬性，否則轉字串
+    for attr in ("params", "pvalues", "rsquared", "aic", "bic", "bic_llf", "llf"):
+        if hasattr(obj, attr):
+            try:
+                return to_jsonable(getattr(obj, attr), max_list=max_list, max_str=max_str)
+            except Exception:
+                pass
+
+    return str(obj)[:max_str] + (" ...<truncated>" if len(str(obj)) > max_str else "")
+
 
 st.set_page_config(page_title="Stat Explainer", layout="wide")
 st.title("📊 stat-explainer — 上傳/預覽 + RAG + OGA-HDiC (Level 3)")
@@ -74,34 +137,34 @@ if uploaded_file:
     else:
         st.write(preview)
 
-# =============================================================
-# 2) RAG 增強（.txt 背景）
-# =============================================================
-st.header("2) RAG 增強（上傳 .txt 背景 → 檢索 + 解釋)")
+# # =============================================================
+# # 2) RAG 增強（.txt 背景）
+# # =============================================================
+# st.header("2) RAG 增強（上傳 .txt 背景 → 檢索 + 解釋)")
 
-rag_file = st.file_uploader("上傳背景說明檔（純文字 .txt）", type=["txt"], key="rag_file")
-rag_text: str | None = None
-if rag_file is not None:
-    try:
-        rag_text = rag_file.read().decode("utf-8", errors="ignore")
-    except Exception:  # noqa: BLE001
-        rag_text = None
+# rag_file = st.file_uploader("上傳背景說明檔（純文字 .txt）", type=["txt"], key="rag_file")
+# rag_text: str | None = None
+# if rag_file is not None:
+#     try:
+#         rag_text = rag_file.read().decode("utf-8", errors="ignore")
+#     except Exception:  # noqa: BLE001
+#         rag_text = None
 
-if rag_text:
-    st.text_area("📝 背景內容預覽", rag_text[:5000], height=180)
+# if rag_text:
+#     st.text_area("📝 背景內容預覽", rag_text[:5000], height=180)
 
-if st.button("📖 使用 RAG 解釋", disabled=(rag_text is None or preview is None)):
-    if not API_KEY:
-        st.error("缺少 OPENAI_API_KEY，無法執行 RAG。")
-    elif run_rag_pipeline is None:
-        st.error("未發現 core.rag_chain.run_rag_pipeline。")
-    else:
-        try:
-            question = "請根據背景說明與上傳資料，解釋這份模型/資料的重點與結論。"
-            response = run_rag_pipeline(question=question, raw_text=rag_text)  # type: ignore[arg-type]
-            st.text_area("🔍 GPT（RAG）回應", value=response, height=320)
-        except Exception as e:
-            st.error(f"RAG 執行錯誤：{e}")
+# if st.button("📖 使用 RAG 解釋", disabled=(rag_text is None or preview is None)):
+#     if not API_KEY:
+#         st.error("缺少 OPENAI_API_KEY，無法執行 RAG。")
+#     elif run_rag_pipeline is None:
+#         st.error("未發現 core.rag_chain.run_rag_pipeline。")
+#     else:
+#         try:
+#             question = "請根據背景說明與上傳資料，解釋這份模型/資料的重點與結論。"
+#             response = run_rag_pipeline(question=question, raw_text=rag_text)  # type: ignore[arg-type]
+#             st.text_area("🔍 GPT（RAG）回應", value=response, height=320)
+#         except Exception as e:
+#             st.error(f"RAG 執行錯誤：{e}")
 
 # =============================================================
 # 3) 自訂函式：OGA-HDiC（Level 3 本地 + 可選 LLM 摘要）
@@ -167,27 +230,44 @@ else:
                     st.json(result)
             except Exception as e:
                 st.error(f"OGA-HDiC 本地執行錯誤：{e}")
-
+        summary_model = st.selectbox(
+            "選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0, key="oga_summary_model"
+        )
         if run_local_summary:
             try:
                 result = dispatch_tool("run_oga_hdic", tool_args)
                 st.success("✅ 本地 OGA-HDiC 完成，準備請 LLM 摘要…")
                 with st.expander("🔧 本地結果 JSON"):
                     st.json(result)
-                if API_KEY:
-                    client = make_client(API_KEY)
-                    compact = dict(result)
-                    for k in ["X", "y", "coef_matrix", "residuals", "fitted_values"]:
-                        if k in compact:
-                            compact[k] = "<omitted>"
-                    payload = json.dumps(compact, ensure_ascii=False, separators=(",", ":"))
 
-                    model_name = st.selectbox(
-                        "選擇 LLM 模型（摘要用）", ["gpt-4o-mini", "gpt-4o"], index=0
-                    )
+                if not API_KEY:
+                    st.warning("未設定 OPENAI_API_KEY，跳過 LLM 摘要。")
+                else:
+                    client = make_client(API_KEY)
+
+                    # 1) 先過濾大型欄位
+                    filtered = dict(result)
+                    for k in [
+                        "X",
+                        "y",
+                        "coef_matrix",
+                        "residuals",
+                        "fitted_values",
+                        "influence",
+                        "cov_params",
+                    ]:
+                        if k in filtered:
+                            filtered[k] = "<omitted>"
+
+                    # 2) 轉為 JSON-safe（解決 numpy/pandas/ResultWrapper 等型別）
+                    safe = to_jsonable(filtered, max_list=100, max_str=4000)
+
+                    # 3) 序列化（separators 去空白，減 token）
+                    payload = json.dumps(safe, ensure_ascii=False, separators=(",", ":"))
+
                     summary = (
                         client.chat.completions.create(
-                            model=model_name,
+                            model=summary_model,
                             messages=[
                                 {
                                     "role": "system",
@@ -195,7 +275,7 @@ else:
                                 },
                                 {
                                     "role": "user",
-                                    "content": "以下是 OGA-HDiC 的結果，請整理要點：選到的變數、關鍵指標與建議。",
+                                    "content": "以下是 OGA-HDiC 的結果，'J_Trim'是選到的重要變數，請整理要點：選到的變數、關鍵指標與建議。",
                                 },
                                 {"role": "user", "content": payload},
                             ],
@@ -207,8 +287,7 @@ else:
 
                     st.subheader("📝 LLM 摘要")
                     st.write(summary)
-                else:
-                    st.warning("未設定 OPENAI_API_KEY，跳過 LLM 摘要。")
+
             except Exception as e:
                 st.error(f"OGA-HDiC 執行或 LLM 摘要錯誤：{e}")
 
