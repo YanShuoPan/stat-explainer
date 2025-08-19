@@ -122,7 +122,7 @@ uploaded_file = st.file_uploader("上傳檔案", type=["csv", "json", "pkl", "tx
 if uploaded_file:
     file_path = save_uploaded_file(uploaded_file)
     st.success(f"✅ 已儲存至: {file_path}")
-    preview = read_uploaded_file(uploaded_file)
+    preview = read_uploaded_file(file_path)
     st.subheader("📋 檔案預覽")
     st.dataframe(preview)
 
